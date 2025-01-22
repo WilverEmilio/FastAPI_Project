@@ -1,21 +1,23 @@
+from jinja2 import Environment, FileSystemLoader
+
 from wsgiref.simple_server import make_server
 
-HTML = """
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Primer servidor en Python</title>
-</head>
-<body>
-    <h1>Hola mundo desde mi primer servidor en Python.</h1>
-</body>
-</html>
-"""
 
 def application(env, start_response):
     headers = [('Content-Type', 'text/html')]
     
     start_response('200 OK', headers)
+    
+    env = Environment(loader=FileSystemLoader('templates'))
+    
+    template = env.get_template('index.html')
+    
+    HTML = template.render(
+        {
+            'title': 'Mi primer servidor',
+            'name': 'Jorge',
+        }
+    )
     
     return  [bytes(HTML, 'utf8')]
 
