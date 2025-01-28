@@ -6,6 +6,9 @@ class User(BaseModel):
     email: str
     age: int
     
+    class Config:
+        orm_mode = True
+    
 user = User(
     username="johndoe",
     password="secret",
