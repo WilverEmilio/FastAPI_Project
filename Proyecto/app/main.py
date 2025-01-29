@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from starlette.responses import RedirectResponse
-from database import database as connection
+from app.database import database as connection
+from app.database import User, Movie, Review
 
 
 app = FastAPI(
@@ -11,11 +12,17 @@ app = FastAPI(
 
 @app.on_event('startup')
 def startup():
-    print('Iniciando el servidor')
+    if connection.is_closed():
+        connection.connect()
+        
+    connection.create_tables([User, Movie, Review]) #Para pdoer crear las tablas en la base de datos cuando se inicia una conexión, si ya existen no pasa nada, pero si no existen las crea
 
 @app.on_event('shutdown')
 def shutdown():
-    print('Apagando el servidor')
+    if not connection.is_closed():
+        connection.close()
+        
+        print ('Conexión cerrada')
 
 @app.get('/')
 def inicio():
