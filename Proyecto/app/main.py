@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from starlette.responses import RedirectResponse
 from app.database import database as connection
 from app.database import User, Movie, Review
-
+from app.schemas import UserModel
 
 app = FastAPI(
     title = 'Proyecto para reseñar peliculas',
@@ -27,3 +27,9 @@ def shutdown():
 @app.get('/')
 def inicio():
     return RedirectResponse(url='/docs/')
+
+@app.post('/users')
+async def create_user(user: UserModel):
+    user = User.create(**user.dict()) 
+    
+    return user.id
