@@ -24,10 +24,35 @@ class UserRequestModel(BaseModel):
         
         return username
     
-class UserResponseModel(BaseModel):
-    id : int
-    username: str
-    
+class ResponseModel(BaseModel):
     class Config:
         orm_mode = True
         getter_dict = PeeweeGetterDict
+    
+class UserResponseModel(ResponseModel):
+    id : int
+    username: str
+    
+        
+class ReviewRequestModel(BaseModel): 
+    movie_id: int
+    user_id: int
+    review: str
+    score: int
+    
+    class Config: 
+        from_attributes = True
+        
+    @validator('score')
+    def score_validator(cls, score):
+        if score < 1 or score > 5:
+            raise ValueError('La puntuación debe ser entre 1 y 5')
+        
+        return score
+    
+class ReviewResponseModel(ResponseModel):
+    id: int
+    movie_id: int
+    review: str
+    score: int
+    
