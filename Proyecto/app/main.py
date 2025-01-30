@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from starlette.responses import RedirectResponse
 from app.database import database as connection
 from app.database import User, Movie, Review
-from app.schemas import UserModel
+from app.schemas import UserRequestModel, UserResponseModel    
 
 app = FastAPI(
     title = 'Proyecto para reseñar peliculas',
@@ -28,8 +28,8 @@ def shutdown():
 def inicio():
     return RedirectResponse(url='/docs/')
 
-@app.post('/users')
-async def create_user(user: UserModel):
+@app.post('/users', response_model=UserResponseModel)
+async def create_user(user: UserRequestModel):
     
     if User.select().where(User.username == user.username).exists():
         return HTTPException(status_code=409, detail='El usuario ya existe', headers={'X-Error': 'El usuario ya existe'})
@@ -41,7 +41,4 @@ async def create_user(user: UserModel):
         password=hash_password
         )
     
-    return {
-        'id': user.id,
-        'username': user.username
-    }
+    return UserResponseModel(id = user.id, username = user.username)
