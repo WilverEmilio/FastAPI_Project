@@ -3,6 +3,7 @@ from starlette.responses import RedirectResponse
 from app.database import database as connection
 from app.database import User, Movie, Review
 from app.schemas import UserRequestModel, UserResponseModel, ReviewRequestModel, ReviewResponseModel
+from typing import List
 
 app = FastAPI(
     title = 'Proyecto para reseñar peliculas',
@@ -60,3 +61,10 @@ async def create_review(user_review: ReviewRequestModel):
         )
     
     return ReviewResponseModel(id=user_review.id,movie_id = user_review.movie_id, review = user_review.review, score = user_review.score)
+
+
+@app.get('/rewiews', response_model=List[ReviewResponseModel])
+async def get_reviews():
+    reviews = Review.select() #Seleccionamos todas las reseñas de la base de datos
+    
+    return reviews
