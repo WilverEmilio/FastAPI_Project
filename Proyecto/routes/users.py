@@ -1,4 +1,4 @@
-from fastapi import HTTPException, APIRouter
+from fastapi import HTTPException, APIRouter, Response
 from fastapi.security import HTTPBasicCredentials
 from app.database import User
 from app.schemas import UserRequestModel, UserResponseModel
@@ -22,7 +22,7 @@ async def create_user(user: UserRequestModel):
 
 
 @router.post('/login', response_model=UserResponseModel)
-async def login(credentials: HTTPBasicCredentials):
+async def login(credentials: HTTPBasicCredentials, response: Response):
     
     user = User.select().where(User.username == credentials.username).first()
     
@@ -32,4 +32,5 @@ async def login(credentials: HTTPBasicCredentials):
     if user.password != User.create_password(credentials.password):
         raise HTTPException(status_code=401, detail='La contraseña es incorrecta', headers={'X-Error': 'La contraseña es incorrecta'})
     
+    response.set_cookie(key='user_id', value=str(user.id))
     return user
