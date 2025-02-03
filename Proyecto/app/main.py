@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from starlette.responses import RedirectResponse
 from app.database import database as connection
 from app.database import User, Movie, Review
-from app.schemas import UserRequestModel, UserResponseModel, ReviewRequestModel, ReviewResponseModel
+from app.schemas import UserRequestModel, UserResponseModel, ReviewRequestModel, ReviewResponseModel, ReviewRequestPutModel
 from typing import List
 
 app = FastAPI(
@@ -64,7 +64,42 @@ async def create_review(user_review: ReviewRequestModel):
 
 
 @app.get('/rewiews', response_model=List[ReviewResponseModel])
-async def get_reviews():
-    reviews = Review.select() #Seleccionamos todas las reseñas de la base de datos
+async def get_reviews(page: int = 1 , limit: int = 10):
+    reviews = Review.select().paginate(page, limit) #Seleccionamos todas las reseñas de la base de datos
     
     return reviews
+
+@app.get('/rewiews/{review_id}', response_model=ReviewResponseModel)
+async def get_review(review_id: int):
+    review = Review.select().where(Review.id == review_id).first()
+    
+    if review is None:
+        raise HTTPException(status_code=404, detail='La reseña no existe', headers={'X-Error': 'La reseña no existe'})
+    
+    return review
+
+@app.put('/reviews/{review_id}', response_model=ReviewResponseModel)
+async def update_review(review_id: int, review_data: ReviewRequestPutModel):
+    review = Review.select().where(Review.id == review_id).first()
+    
+    if review is None:
+        raise HTTPException(status_code=404, detail='La reseña no existe', headers={'X-Error': 'La reseña no existe'})
+    
+    review.review = review_data.review
+    review.score = review_data.score
+    
+    review.save()
+    
+    return review
+
+@app.delete('/reviews/{review_id}')
+async def deleta_review(review_id: int):
+    review = Review.select().where(Review.id == review_id).first()
+    
+    if review is None:
+        raise HTTPException(status_code=404, detail='La reseña no existe', headers={'X-Error': 'La reseña no existe'})
+    
+    review.delete_instance()
+    
+    return {'message': 'La reseña ha sido eliminada'}
+
