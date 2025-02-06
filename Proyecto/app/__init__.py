@@ -1,6 +1,7 @@
 from fastapi import FastAPI, APIRouter
 from app.database import database as connection
 from app.database import User, Movie, Review
+from starlette.responses import RedirectResponse
 
 
 #Nuevo codigo para las rutas
@@ -32,4 +33,8 @@ def shutdown():
         connection.close()
         
         print ('Conexión cerrada')
-
+        
+#Ruta de inicio
+@app.get('/')
+def inicio():
+    return RedirectResponse(url='/docs/')

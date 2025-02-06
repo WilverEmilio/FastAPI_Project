@@ -1,5 +1,5 @@
 from fastapi import HTTPException, APIRouter
-from app.schemas import ReviewRequestModel, ReviewResponseModel, ReviewRequestPutModel
+from app.schemas import ReviewRequestModel, ReviewResponseModel, ReviewRequestPutModel, MovieResponseModel
 from app.database import User, Movie, Review
 from typing import List
 
@@ -36,8 +36,10 @@ async def create_review(user_review: ReviewRequestModel):
         review = user_review.review,
         score = user_review.score
         )
-    
-    return ReviewResponseModel(id=user_review.id,movie_id = user_review.movie_id, review = user_review.review, score = user_review.score)
+    movie = Movie.select().where(Movie.id == user_review.movie_id).first()  # Obtener la película
+    movie_response = MovieResponseModel(id=movie.id, title=movie.title)  # Convertir a Pydantic
+
+    return ReviewResponseModel(id=user_review.id, movie=movie_response, review=user_review.review, score=user_review.score)
 
 
 @router.put('/{review_id}', response_model=ReviewResponseModel)
