@@ -31,7 +31,7 @@ async def create_review(user_review: ReviewRequestModel):
         raise HTTPException(status_code=404, detail='La pelicula no existe', headers={'X-Error': 'La pelicula no existe'})
     
     user_review = Review.create(
-        movie_id = user_review.movie_id,
+        movie_id = user_review.movie_id, #Owner
         user_id = user_review.user_id,
         review = user_review.review,
         score = user_review.score

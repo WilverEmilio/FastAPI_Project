@@ -21,7 +21,13 @@ class User(Model):
     class Meta: 
         database = database
         table_name = 'users'
+     
+    @classmethod    
+    def authenticate(cls, username, password):
+        user = cls.select().where(User.username == username).first()
         
+        if user and user.password == cls.create_password(password):
+            return user
     @classmethod
     def create_password(self, password):
         h = hashlib.md5()
