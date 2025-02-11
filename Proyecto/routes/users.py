@@ -1,9 +1,10 @@
-from fastapi import HTTPException, APIRouter, Response, Cookie
+from fastapi import HTTPException, APIRouter, Response, Cookie, Depends
 from fastapi.security import HTTPBasicCredentials
 from app.database import User
 from app.schemas import UserRequestModel, UserResponseModel
 from typing import List
 from app.schemas import ReviewResponseModel
+from routes.common import oauth2_scheme
 
 router = APIRouter(prefix='/users', tags=['Users'])
 
@@ -37,14 +38,23 @@ async def login(credentials: HTTPBasicCredentials, response: Response):
     response.set_cookie(key='user_id', value=str(user.id))
     return user
 
-@router.get('/reviews', response_model=List[ReviewResponseModel])
-async def get_reviews(user_id: int = Cookie(None)):
+# @router.get('/reviews', response_model=List[ReviewResponseModel])
+# async def get_reviews(user_id: int = Cookie(None)):
 
-    user = User.select().where(User.id == user_id).first()
+#     user = User.select().where(User.id == user_id).first()
 
-    if user is None:
-        raise HTTPException(status_code=404, detail='El usuario no existe', headers={'X-Error': 'El usuario no existe'})
+#     if user is None:
+#         raise HTTPException(status_code=404, detail='El usuario no existe', headers={'X-Error': 'El usuario no existe'})
 
-    reviews = list(user.reviews)
+#     reviews = list(user.reviews)
 
-    return [user_review for user_review in reviews]
+#     return [user_review for user_review in reviews]
+
+
+
+#Esto es para la implementación de la autenticación utilizando OAuth2, es decir que se necesita un token para poder acceder a las reseñas
+@router.get('/reviews')
+async def get_reviews(token: str = Depends(oauth2_scheme)):
+    return{
+        token
+    }
