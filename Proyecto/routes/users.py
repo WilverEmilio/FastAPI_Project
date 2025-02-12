@@ -4,7 +4,7 @@ from app.database import User
 from app.schemas import UserRequestModel, UserResponseModel
 from typing import List
 from app.schemas import ReviewResponseModel
-from routes.common import oauth2_scheme
+from routes.common import oauth2_scheme,get_current_user
 
 router = APIRouter(prefix='/users', tags=['Users'])
 
@@ -53,8 +53,17 @@ async def login(credentials: HTTPBasicCredentials, response: Response):
 
 
 #Esto es para la implementación de la autenticación utilizando OAuth2, es decir que se necesita un token para poder acceder a las reseñas
+# @router.get('/reviews')
+# async def get_reviews(token: str = Depends(oauth2_scheme)):
+#     return{
+#         token
+#     }
+
+
+#Para saber que usuario esta autenticado y asi poder mostrar sus reseñas
 @router.get('/reviews')
-async def get_reviews(token: str = Depends(oauth2_scheme)):
+async def get_reviews(user: User = Depends(get_current_user)):
     return{
-        token
+        'id': user.id,
+        'username': user.username
     }
