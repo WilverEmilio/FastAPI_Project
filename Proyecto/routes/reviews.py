@@ -1,7 +1,8 @@
-from fastapi import HTTPException, APIRouter
+from fastapi import HTTPException, APIRouter, Depends
 from app.schemas import ReviewRequestModel, ReviewResponseModel, ReviewRequestPutModel, MovieResponseModel
 from app.database import User, Movie, Review
 from typing import List
+from routes.common import get_current_user
 
 router = APIRouter(prefix='/reviews', tags=['Reviews'])
 
@@ -22,17 +23,14 @@ async def get_review(review_id: int):
     return review
 
 @router.post('', response_model=ReviewResponseModel)
-async def create_review(user_review: ReviewRequestModel):
-    
-    if User.select().where(User.id == user_review.user_id).first() is None:
-        raise HTTPException(status_code=404, detail='El usuario no existe', headers={'X-Error': 'El usuario no existe'})
-    
+async def create_review(user_review: ReviewRequestModel, user: User= Depends(get_current_user)):
+        
     if Movie.select().where(Movie.id == user_review.movie_id).first() is None:
         raise HTTPException(status_code=404, detail='La pelicula no existe', headers={'X-Error': 'La pelicula no existe'})
     
     user_review = Review.create(
-        movie_id = user_review.movie_id, #Owner
-        user_id = user_review.user_id,
+        movie_id = user_review.movie_id, 
+        user_id = user.id, #Owner
         review = user_review.review,
         score = user_review.score
         )
@@ -43,11 +41,14 @@ async def create_review(user_review: ReviewRequestModel):
 
 
 @router.put('/{review_id}', response_model=ReviewResponseModel)
-async def update_review(review_id: int, review_data: ReviewRequestPutModel):
+async def update_review(review_id: int, review_data: ReviewRequestPutModel, user: User= Depends(get_current_user)):
     review = Review.select().where(Review.id == review_id).first()
     
     if review is None:
         raise HTTPException(status_code=404, detail='La reseña no existe', headers={'X-Error': 'La reseña no existe'})
+    
+    if review.user_id != user.id:
+        raise HTTPException(status_code=403, detail='No tienes permisos para modificar esta reseña', headers={'X-Error': 'No tienes permisos para modificar esta reseña'})
     
     review.review = review_data.review
     review.score = review_data.score
@@ -57,11 +58,14 @@ async def update_review(review_id: int, review_data: ReviewRequestPutModel):
     return review
 
 @router.delete('/{review_id}')
-async def deleta_review(review_id: int):
+async def deleta_review(review_id: int, user: User= Depends(get_current_user)):
     review = Review.select().where(Review.id == review_id).first()
     
     if review is None:
         raise HTTPException(status_code=404, detail='La reseña no existe', headers={'X-Error': 'La reseña no existe'})
+    
+    if review.user_id != user.id:
+        raise HTTPException(status_code=403, detail='No tienes permisos para eliminar esta reseña', headers={'X-Error': 'No tienes permisos para eliminar esta reseña'})
     
     review.delete_instance()
     

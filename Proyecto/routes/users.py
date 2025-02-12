@@ -61,9 +61,8 @@ async def login(credentials: HTTPBasicCredentials, response: Response):
 
 
 #Para saber que usuario esta autenticado y asi poder mostrar sus reseñas
-@router.get('/reviews')
+@router.get('/reviews', response_model=List[ReviewResponseModel])
 async def get_reviews(user: User = Depends(get_current_user)):
-    return{
-        'id': user.id,
-        'username': user.username
-    }
+    reviews = list(user.reviews)
+
+    return [user_review for user_review in reviews]
